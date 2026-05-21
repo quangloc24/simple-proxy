@@ -43,6 +43,18 @@ export function getProxyHeaders(headers: Headers): Headers {
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0',
   );
 
+  headers.forEach((value, key) => {
+    const lowerKey = key.toLowerCase();
+    if (
+      !blacklistedHeaders.includes(lowerKey) &&
+      lowerKey !== 'user-agent' &&
+      lowerKey !== 'host' &&
+      lowerKey !== 'connection'
+    ) {
+      output.set(key, value);
+    }
+  });
+
   Object.entries(headerMap).forEach((entry) => {
     copyHeader(headers, output, entry[0], entry[1]);
   });
