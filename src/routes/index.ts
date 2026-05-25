@@ -47,20 +47,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Fallback routing: If the destination contains "/altcha/challenge", route it through the Cloudflare Worker proxy.
-  // This avoids VPS datacenter IP blocks from Cloudflare's WAF on the target domain.
-  if (destination && (destination.includes('/altcha/challenge') || destination.includes('/altcha/'))) {
-    const fallbackProxy = process.env['FALLBACK_PROXY'];
-    if (!fallbackProxy) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Configuration Error: FALLBACK_PROXY environment variable is required for Altcha challenge requests.',
-      });
-    }
-    console.log(`[Proxy Fallback] Routing Altcha challenge through Cloudflare proxy: ${fallbackProxy}`);
-    destination = `${fallbackProxy}/?destination=${encodeURIComponent(destination)}`;
-  }
-
   // Check if allowed to make the request
   if (!(await isAllowedToMakeRequest(event))) {
     return await sendJson({

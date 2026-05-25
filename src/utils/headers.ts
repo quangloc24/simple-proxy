@@ -21,6 +21,7 @@ const blacklistedHeaders = [
   'forwarded',
   'x-real-ip',
   'content-length',
+  'accept-encoding',
   ...Object.keys(headerMap),
 ];
 
