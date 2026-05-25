@@ -11,6 +11,10 @@ import {
 } from '@/utils/turnstile';
 
 export default defineEventHandler(async (event) => {
+  const method = event.node.req.method || 'GET';
+  const url = event.node.req.url || '/';
+  console.log(`[Request] ${method} ${url}`);
+
   // Handle preflight CORS requests
   if (isPreflightRequest(event)) {
     handleCors(event, {});
@@ -29,7 +33,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Parse destination URL
-  const destination = getQuery<{ destination?: string }>(event).destination;
+  let destination = getQuery<{ destination?: string }>(event).destination;
+  
   if (!destination) {
     return await sendJson({
       event,
@@ -40,6 +45,20 @@ export default defineEventHandler(async (event) => {
         })`,
       },
     });
+  }
+
+  // Fallback routing: If the destination contains "/altcha/challenge", route it through the Cloudflare Worker proxy.
+  // This avoids VPS datacenter IP blocks from Cloudflare's WAF on the target domain.
+  if (destination && (destination.includes('/altcha/challenge') || destination.includes('/altcha/'))) {
+    const fallbackProxy = process.env['FALLBACK_PROXY'];
+    if (!fallbackProxy) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Configuration Error: FALLBACK_PROXY environment variable is required for Altcha challenge requests.',
+      });
+    }
+    console.log(`[Proxy Fallback] Routing Altcha challenge through Cloudflare proxy: ${fallbackProxy}`);
+    destination = `${fallbackProxy}/?destination=${encodeURIComponent(destination)}`;
   }
 
   // Check if allowed to make the request

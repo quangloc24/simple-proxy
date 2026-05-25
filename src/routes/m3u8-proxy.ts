@@ -185,6 +185,8 @@ async function proxyM3U8(event: any) {
     }));
   }
   
+  console.log(`[HLS Proxy] Requesting playlist: ${url}`);
+  
   let headers = {};
   try {
     headers = headersParam ? JSON.parse(headersParam) : {};
