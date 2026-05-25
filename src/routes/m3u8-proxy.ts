@@ -225,22 +225,32 @@ async function proxyM3U8(event: any) {
       for (const line of lines) {
         if (line.startsWith("#")) {
           if (line.startsWith("#EXT-X-KEY:")) {
-            // Proxy the key URL
-            const regex = /https?:\/\/[^\""\s]+/g;
-            const keyUrl = regex.exec(line)?.[0];
-            if (keyUrl) {
-              const proxyKeyUrl = `${baseProxyUrl}/ts-proxy?url=${encodeURIComponent(keyUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
-              newLines.push(line.replace(keyUrl, proxyKeyUrl));
+            // Proxy the key URL (can be absolute or relative inside URI="...")
+            const match = line.match(/URI=["']([^"']+)["']/i);
+            const keyUri = match?.[1];
+            if (keyUri) {
+              const absoluteKeyUrl = parseURL(keyUri, url);
+              if (absoluteKeyUrl) {
+                const proxyKeyUrl = `${baseProxyUrl}/ts-proxy?url=${encodeURIComponent(absoluteKeyUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
+                newLines.push(line.replace(keyUri, proxyKeyUrl));
+              } else {
+                newLines.push(line);
+              }
             } else {
               newLines.push(line);
             }
           } else if (line.startsWith("#EXT-X-MEDIA:")) {
             // Proxy alternative media URLs (like audio streams)
-            const regex = /https?:\/\/[^\""\s]+/g;
-            const mediaUrl = regex.exec(line)?.[0];
-            if (mediaUrl) {
-              const proxyMediaUrl = `${baseProxyUrl}/m3u8-proxy?url=${encodeURIComponent(mediaUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
-              newLines.push(line.replace(mediaUrl, proxyMediaUrl));
+            const match = line.match(/URI=["']([^"']+)["']/i);
+            const mediaUri = match?.[1];
+            if (mediaUri) {
+              const absoluteMediaUrl = parseURL(mediaUri, url);
+              if (absoluteMediaUrl) {
+                const proxyMediaUrl = `${baseProxyUrl}/m3u8-proxy?url=${encodeURIComponent(absoluteMediaUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
+                newLines.push(line.replace(mediaUri, proxyMediaUrl));
+              } else {
+                newLines.push(line);
+              }
             } else {
               newLines.push(line);
             }
@@ -281,16 +291,21 @@ async function proxyM3U8(event: any) {
       for (const line of lines) {
         if (line.startsWith("#")) {
           if (line.startsWith("#EXT-X-KEY:")) {
-            // Proxy the key URL
-            const regex = /https?:\/\/[^\""\s]+/g;
-            const keyUrl = regex.exec(line)?.[0];
-            if (keyUrl) {
-              const proxyKeyUrl = `${baseProxyUrl}/ts-proxy?url=${encodeURIComponent(keyUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
-              newLines.push(line.replace(keyUrl, proxyKeyUrl));
-              
-              // Only prefetch if cache is enabled
-              if (!isCacheDisabled()) {
-                prefetchSegment(keyUrl, headers as HeadersInit);
+            // Proxy the key URL (can be absolute or relative inside URI="...")
+            const match = line.match(/URI=["']([^"']+)["']/i);
+            const keyUri = match?.[1];
+            if (keyUri) {
+              const absoluteKeyUrl = parseURL(keyUri, url);
+              if (absoluteKeyUrl) {
+                const proxyKeyUrl = `${baseProxyUrl}/ts-proxy?url=${encodeURIComponent(absoluteKeyUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
+                newLines.push(line.replace(keyUri, proxyKeyUrl));
+                
+                // Only prefetch if cache is enabled
+                if (!isCacheDisabled()) {
+                  prefetchSegment(absoluteKeyUrl, headers as HeadersInit);
+                }
+              } else {
+                newLines.push(line);
               }
             } else {
               newLines.push(line);
