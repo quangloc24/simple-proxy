@@ -254,6 +254,21 @@ async function proxyM3U8(event: any) {
             } else {
               newLines.push(line);
             }
+          } else if (line.startsWith("#EXT-X-MAP:")) {
+            // Proxy the media initialization segment URL inside URI="..."
+            const match = line.match(/URI=["']([^"']+)["']/i);
+            const mapUri = match?.[1];
+            if (mapUri) {
+              const absoluteMapUrl = parseURL(mapUri, url);
+              if (absoluteMapUrl) {
+                const proxyMapUrl = `${baseProxyUrl}/ts-proxy?url=${encodeURIComponent(absoluteMapUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
+                newLines.push(line.replace(mapUri, proxyMapUrl));
+              } else {
+                newLines.push(line);
+              }
+            } else {
+              newLines.push(line);
+            }
           } else {
             newLines.push(line);
           }
@@ -304,6 +319,21 @@ async function proxyM3U8(event: any) {
                 if (!isCacheDisabled()) {
                   prefetchSegment(absoluteKeyUrl, headers as HeadersInit);
                 }
+              } else {
+                newLines.push(line);
+              }
+            } else {
+              newLines.push(line);
+            }
+          } else if (line.startsWith("#EXT-X-MAP:")) {
+            // Proxy the media initialization segment URL inside URI="..."
+            const match = line.match(/URI=["']([^"']+)["']/i);
+            const mapUri = match?.[1];
+            if (mapUri) {
+              const absoluteMapUrl = parseURL(mapUri, url);
+              if (absoluteMapUrl) {
+                const proxyMapUrl = `${baseProxyUrl}/ts-proxy?url=${encodeURIComponent(absoluteMapUrl)}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
+                newLines.push(line.replace(mapUri, proxyMapUrl));
               } else {
                 newLines.push(line);
               }
