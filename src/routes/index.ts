@@ -1,14 +1,14 @@
-import { getBodyBuffer } from '@/utils/body';
+import { getBodyBuffer } from '../utils/body';
 import {
   getProxyHeaders,
   getAfterResponseHeaders,
   getBlacklistedHeaders,
-} from '@/utils/headers';
+} from '../utils/headers';
 import {
   createTokenIfNeeded,
   isAllowedToMakeRequest,
   setTokenHeader,
-} from '@/utils/turnstile';
+} from '../utils/turnstile';
 
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method || 'GET';

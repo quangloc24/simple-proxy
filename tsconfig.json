@@ -16,8 +16,16 @@
     "noEmit": true,
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*", "./providers/*"]
     }
   },
-  "extends": "./.nitro/types/tsconfig.json"
+  "extends": "./.nitro/types/tsconfig.json",
+  "exclude": [
+    "node_modules",
+    ".nitro",
+    ".output",
+    "dist",
+    "src/providers/__test__",
+    "src/providers/dev-cli"
+  ]
 }

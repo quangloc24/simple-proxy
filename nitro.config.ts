@@ -9,6 +9,11 @@ export default defineNitroConfig({
     version: pkg.version
   },
   alias: {
-    "@": join(__dirname, "src")
+    "@": join(__dirname, "src/providers")
+  },
+  esbuild: {
+    options: {
+      target: "es2020"
+    }
   }
 });

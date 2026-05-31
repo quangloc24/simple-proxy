@@ -1,6 +1,6 @@
 import { H3Event, EventHandlerRequest } from 'h3';
 import { SignJWT, jwtVerify } from 'jose';
-import { getIp } from '@/utils/ip';
+import { getIp } from './ip';
 
 const turnstileSecret = process.env.TURNSTILE_SECRET ?? null;
 const jwtSecret = process.env.JWT_SECRET ?? null;
